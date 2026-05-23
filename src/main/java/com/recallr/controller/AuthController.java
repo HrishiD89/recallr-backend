@@ -24,14 +24,21 @@ import java.util.Map;
 @RequestMapping("/api/v1")
 public class AuthController {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtEncoder jwtEncoder;
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    // Replace with this
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtEncoder jwtEncoder;
+    private final AuthenticationManager authenticationManager;
+
+    public AuthController(UserRepository userRepository,
+                          PasswordEncoder passwordEncoder,
+                          JwtEncoder jwtEncoder,
+                          AuthenticationManager authenticationManager) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtEncoder = jwtEncoder;
+        this.authenticationManager = authenticationManager;
+    }
 
 
     @PostMapping("/signup")
@@ -79,7 +86,7 @@ public class AuthController {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .expiresAt(now.plus(24, ChronoUnit.HOURS))
                 .subject(user.getUsername())
                 .build();
 

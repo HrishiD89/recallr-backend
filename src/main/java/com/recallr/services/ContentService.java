@@ -24,6 +24,7 @@ public class ContentService {
         this.resolver = resolver;
     }
 
+    @Transactional
     public ContentResponseDTO save(ContentRequestDTO request, User user) {
         ContentMetadata meta = resolver.resolve(request.url());
         Content content = new Content();
@@ -32,7 +33,6 @@ public class ContentService {
         content.setThumbnailUrl(meta.thumbnail());
         content.setTitle(meta.title());
         content.setType(meta.type());
-        content.setNotes(request.notes());
         content.setUser(user);
 
         Content saved = contentRepository.save(content);
@@ -49,7 +49,7 @@ public class ContentService {
                 .map(this::toDTO)
                 .toList();
     }
-
+    @Transactional
     public void delete(Long id, User user) {
         Content content = contentRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Content not found"));
@@ -73,7 +73,6 @@ public class ContentService {
                 c.getTitle(),
                 c.getThumbnailUrl(),
                 c.getType(),
-                c.getNotes(),
                 c.isRead(),
                 c.getCreatedAt()
         );

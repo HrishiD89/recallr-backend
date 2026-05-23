@@ -43,8 +43,6 @@ public class Content {
     @Column(nullable = false, length = 32)
     private ContentType type;
 
-    @Column(columnDefinition = "text")
-    private String notes;
 
     @Column(nullable = false)
     private boolean read;
@@ -114,14 +112,6 @@ public class Content {
 
     public void setType(ContentType type) {
         this.type = type;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
     }
 
     public boolean isRead() {

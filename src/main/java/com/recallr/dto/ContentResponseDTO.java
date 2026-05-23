@@ -11,7 +11,6 @@ public record ContentResponseDTO(
         String title,
         String thumbnailUrl,
         ContentType type,
-        String notes,
         boolean read,
         LocalDateTime createdAt
 ) {

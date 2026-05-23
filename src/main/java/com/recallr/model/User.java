@@ -50,6 +50,18 @@ public class User {
         return password;
     }
 
+    @Column(unique = true, length = 64)
+    private String shareToken;
+
+    // getter and setter
+    public String getShareToken() {
+        return shareToken;
+    }
+
+    public void setShareToken(String shareToken) {
+        this.shareToken = shareToken;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
