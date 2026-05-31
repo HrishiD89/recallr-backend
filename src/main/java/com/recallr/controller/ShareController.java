@@ -4,6 +4,7 @@ import com.recallr.dto.ContentResponseDTO;
 import com.recallr.model.User;
 import com.recallr.repository.UserRepository;
 import com.recallr.services.ContentService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,13 +27,20 @@ public class ShareController {
         this.contentService = contentService;
     }
 
+    @Transactional
     @PostMapping("/generate")
     public ResponseEntity<?> generate(Authentication auth) {
         User user = userRepository.findByUsername(auth.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"));
-        String token = UUID.randomUUID().toString();
-        user.setShareToken(token);
-        userRepository.save(user);
+        String existingToken = user.getShareToken();
+        String token = null;
+        if (existingToken != null && !existingToken.isEmpty()) {
+            token = existingToken;
+        } else {
+            token = UUID.randomUUID().toString();
+            user.setShareToken(token);
+            userRepository.save(user);
+        }
         return ResponseEntity.ok(Map.of("shareUrl", "/share/" + token));
     }
 

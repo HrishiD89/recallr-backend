@@ -1,6 +1,7 @@
 package com.recallr.dto;
 
 import com.recallr.model.ContentType;
+import com.recallr.model.ProcessingStatus;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ public record ContentResponseDTO(
         String title,
         String thumbnailUrl,
         ContentType type,
+        ProcessingStatus processingStatus,
         boolean read,
         LocalDateTime createdAt
 ) {

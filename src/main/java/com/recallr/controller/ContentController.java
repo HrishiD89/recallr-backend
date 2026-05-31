@@ -2,6 +2,7 @@ package com.recallr.controller;
 
 import com.recallr.dto.ContentRequestDTO;
 import com.recallr.dto.ContentResponseDTO;
+import com.recallr.model.Content;
 import com.recallr.model.User;
 import com.recallr.repository.UserRepository;
 import com.recallr.services.ContentService;

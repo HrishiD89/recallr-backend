@@ -43,6 +43,9 @@ public class Content {
     @Column(nullable = false, length = 32)
     private ContentType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private ProcessingStatus processingStatus = ProcessingStatus.PENDING;
 
     @Column(nullable = false)
     private boolean read;
@@ -114,6 +117,14 @@ public class Content {
         this.type = type;
     }
 
+    public ProcessingStatus getProcessingStatus() {
+        return processingStatus;
+    }
+
+    public void setProcessingStatus(ProcessingStatus processingStatus) {
+        this.processingStatus = processingStatus;
+    }
+
     public boolean isRead() {
         return read;
     }
@@ -146,4 +157,3 @@ public class Content {
         this.tags = tags;
     }
 }
-

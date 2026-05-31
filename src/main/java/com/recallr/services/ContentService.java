@@ -4,12 +4,15 @@ import com.recallr.dto.ContentMetadata;
 import com.recallr.dto.ContentRequestDTO;
 import com.recallr.dto.ContentResponseDTO;
 import com.recallr.model.Content;
+import com.recallr.model.ExtractedDocument;
 import com.recallr.model.User;
 import com.recallr.repository.ContentRepository;
+import com.recallr.repository.ExtractedDocumentRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -18,14 +21,22 @@ public class ContentService {
 
     private final ContentRepository contentRepository;
     private final ContentTypeResolver resolver;
+    private final TextExtractor textExtractor;
+    private final ExtractedDocumentRepository extractedDocumentRepository;
 
-    public ContentService(ContentRepository contentRepository, ContentTypeResolver resolver) {
+    public ContentService(ContentRepository contentRepository,
+                          ContentTypeResolver resolver,
+                          TextExtractor textExtractor,
+                          ExtractedDocumentRepository extractedDocumentRepository) {
         this.contentRepository = contentRepository;
         this.resolver = resolver;
+        this.textExtractor = textExtractor;
+        this.extractedDocumentRepository = extractedDocumentRepository;
     }
 
     @Transactional
     public ContentResponseDTO save(ContentRequestDTO request, User user) {
+
         ContentMetadata meta = resolver.resolve(request.url());
         Content content = new Content();
         content.setUrl(request.url());
@@ -36,6 +47,14 @@ public class ContentService {
         content.setUser(user);
 
         Content saved = contentRepository.save(content);
+
+        String rawText = textExtractor.extract(request.url(), meta.type());
+
+        ExtractedDocument doc = new ExtractedDocument();
+        doc.setContent(saved);
+        doc.setSourceKind(meta.type());
+        doc.setRawText(rawText);
+        extractedDocumentRepository.save(doc);
 
         return toDTO(saved);
 
@@ -49,6 +68,7 @@ public class ContentService {
                 .map(this::toDTO)
                 .toList();
     }
+
     @Transactional
     public void delete(Long id, User user) {
         Content content = contentRepository.findByIdAndUser(id, user)
@@ -73,6 +93,7 @@ public class ContentService {
                 c.getTitle(),
                 c.getThumbnailUrl(),
                 c.getType(),
+                c.getProcessingStatus(),
                 c.isRead(),
                 c.getCreatedAt()
         );
