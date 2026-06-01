@@ -5,6 +5,7 @@ import com.recallr.dto.ContentRequestDTO;
 import com.recallr.dto.ContentResponseDTO;
 import com.recallr.model.Content;
 import com.recallr.model.ExtractedDocument;
+import com.recallr.model.ProcessingStatus;
 import com.recallr.model.User;
 import com.recallr.repository.ContentRepository;
 import com.recallr.repository.ExtractedDocumentRepository;
@@ -12,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -23,15 +23,18 @@ public class ContentService {
     private final ContentTypeResolver resolver;
     private final TextExtractor textExtractor;
     private final ExtractedDocumentRepository extractedDocumentRepository;
+    private final ContentProcessor contentProcessor;
 
     public ContentService(ContentRepository contentRepository,
                           ContentTypeResolver resolver,
                           TextExtractor textExtractor,
-                          ExtractedDocumentRepository extractedDocumentRepository) {
+                          ExtractedDocumentRepository extractedDocumentRepository,
+                          ContentProcessor contentProcessor) {
         this.contentRepository = contentRepository;
         this.resolver = resolver;
         this.textExtractor = textExtractor;
         this.extractedDocumentRepository = extractedDocumentRepository;
+        this.contentProcessor = contentProcessor;
     }
 
     @Transactional
@@ -55,6 +58,9 @@ public class ContentService {
         doc.setSourceKind(meta.type());
         doc.setRawText(rawText);
         extractedDocumentRepository.save(doc);
+
+        ProcessingStatus finalStatus = contentProcessor.process(saved.getId(), user.getId());
+        saved.setProcessingStatus(finalStatus);
 
         return toDTO(saved);
 
