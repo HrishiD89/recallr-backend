@@ -3,15 +3,19 @@ package com.recallr.services;
 import com.recallr.dto.ContentMetadata;
 import com.recallr.dto.ContentRequestDTO;
 import com.recallr.dto.ContentResponseDTO;
+import com.recallr.events.ContentCreatedEvent;
 import com.recallr.model.Content;
 import com.recallr.model.ExtractedDocument;
 import com.recallr.model.ProcessingStatus;
 import com.recallr.model.User;
 import com.recallr.repository.ContentRepository;
 import com.recallr.repository.ExtractedDocumentRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -22,19 +26,18 @@ public class ContentService {
     private final ContentRepository contentRepository;
     private final ContentTypeResolver resolver;
     private final TextExtractor textExtractor;
-    private final ExtractedDocumentRepository extractedDocumentRepository;
-    private final ContentProcessor contentProcessor;
+    private final ContentProcessingService contentProcessingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ContentService(ContentRepository contentRepository,
                           ContentTypeResolver resolver,
                           TextExtractor textExtractor,
-                          ExtractedDocumentRepository extractedDocumentRepository,
-                          ContentProcessor contentProcessor) {
+                          ContentProcessor contentProcessor, ContentProcessingService contentProcessingService, ApplicationEventPublisher eventPublisher) {
         this.contentRepository = contentRepository;
         this.resolver = resolver;
         this.textExtractor = textExtractor;
-        this.extractedDocumentRepository = extractedDocumentRepository;
-        this.contentProcessor = contentProcessor;
+        this.contentProcessingService = contentProcessingService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -53,18 +56,11 @@ public class ContentService {
 
         String rawText = textExtractor.extract(request.url(), meta.type());
 
-        ExtractedDocument doc = new ExtractedDocument();
-        doc.setContent(saved);
-        doc.setSourceKind(meta.type());
-        doc.setRawText(rawText);
-        extractedDocumentRepository.save(doc);
-
-        ProcessingStatus finalStatus = contentProcessor.process(saved.getId(), user.getId());
-        saved.setProcessingStatus(finalStatus);
-
+        eventPublisher.publishEvent(new ContentCreatedEvent(saved.getId(),rawText, user.getId()));
         return toDTO(saved);
 
     }
+
 
     @Transactional(readOnly = true)
     public List<ContentResponseDTO> findAll(User user) {
