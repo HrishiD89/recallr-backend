@@ -53,7 +53,14 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(request.password()));
         userRepository.save(user);
 
-        return ResponseEntity.ok(Map.of("message", "Signed up"));
+        String token = generateToken(user);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Signed up",
+                        "token", token
+                )
+        );
 
     }
 

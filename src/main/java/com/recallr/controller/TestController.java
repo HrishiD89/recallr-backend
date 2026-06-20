@@ -4,10 +4,15 @@ import com.recallr.client.GeminiClient;
 import com.recallr.model.ContentType;
 import com.recallr.services.ContentTypeResolver;
 import com.recallr.services.TextExtractor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Arrays;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/test")
@@ -32,10 +37,10 @@ public class TestController {
     }
 
     @GetMapping("/embed")
-    public String testEmbed() {
-        float[] embedding = geminiClient.embedText("Hello from Recallr");
-        return "Embedding length: " + embedding.length + " | First value: " + embedding[0];
-    }
+    public String testEmbed(@RequestParam String text) {
+        float[] embedding = geminiClient.embedText(text);
+        return "Embedding length: " + embedding.length +
+                "\nEmbedding: " + Arrays.toString(embedding);    }
 
     @GetMapping("/generate")
     public String testGenerate() {
@@ -43,6 +48,13 @@ public class TestController {
                 "What is pgvector and why is it used in RAG applications? Answer in 2 sentences."
         );
         return answer;
+    }
+
+    @GetMapping("/me")
+    public Map<String, Object> me(
+            @AuthenticationPrincipal Jwt jwt) {
+
+        return jwt.getClaims();
     }
 
     @GetMapping("/extract")
