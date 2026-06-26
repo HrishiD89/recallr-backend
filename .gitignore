@@ -44,3 +44,6 @@ ROADMAP.md
 
 # Local-only controllers
 src/main/java/com/recallr/controller/TestController.java
+
+# Agent and codebase documentation
+docs/
