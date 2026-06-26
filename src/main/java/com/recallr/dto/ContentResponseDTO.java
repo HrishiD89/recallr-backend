@@ -14,6 +14,9 @@ public record ContentResponseDTO(
         ContentType type,
         ProcessingStatus processingStatus,
         boolean read,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String author,
+        String description,
+        Integer wordCount
 ) {
 }

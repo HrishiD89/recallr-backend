@@ -1,0 +1,3 @@
+ALTER TABLE contents ADD COLUMN author VARCHAR(512);
+ALTER TABLE contents ADD COLUMN description VARCHAR(2048);
+ALTER TABLE contents ADD COLUMN word_count INT;

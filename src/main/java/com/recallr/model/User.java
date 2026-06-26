@@ -1,6 +1,8 @@
 package com.recallr.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +10,8 @@ import java.util.List;
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator = "tsid")
+    @GenericGenerator(name = "tsid", type = com.recallr.config.TsidGenerator.class)
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)

@@ -53,6 +53,8 @@ public class ContentService {
         content.setThumbnailUrl(meta.thumbnail());
         content.setTitle(meta.title());
         content.setType(meta.type());
+        content.setAuthor(meta.author());
+        content.setDescription(meta.description());
         content.setUser(user);
 
         Content saved = contentRepository.save(content);
@@ -107,7 +109,10 @@ public class ContentService {
                 c.getType(),
                 c.getProcessingStatus(),
                 c.isRead(),
-                c.getCreatedAt()
+                c.getCreatedAt(),
+                c.getAuthor(),
+                c.getDescription(),
+                c.getWordCount()
         );
     }
 

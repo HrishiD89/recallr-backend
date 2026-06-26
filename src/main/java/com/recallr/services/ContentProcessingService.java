@@ -40,6 +40,15 @@ public class ContentProcessingService {
 
         ProcessingStatus finalStatus = contentProcessor.process(content.getId(), event.userId());
         content.setProcessingStatus(finalStatus);
+        
+        // Calculate and save the word count from extracted text
+        if (event.rawText() != null && !event.rawText().trim().isEmpty()) {
+            String[] words = event.rawText().trim().split("\\s+");
+            content.setWordCount(words.length);
+        } else {
+            content.setWordCount(0);
+        }
+
         contentRepository.save(content);
 
     }
