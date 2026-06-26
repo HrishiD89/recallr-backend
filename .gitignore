@@ -41,3 +41,6 @@ src/main/resources/certs/*.pem
 # Environment config
 .env
 ROADMAP.md
+
+# Local-only controllers
+src/main/java/com/recallr/controller/TestController.java
