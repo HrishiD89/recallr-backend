@@ -3,6 +3,7 @@ package com.recallr.services;
 import com.recallr.dto.ContentMetadata;
 import com.recallr.dto.ContentRequestDTO;
 import com.recallr.dto.ContentResponseDTO;
+import com.recallr.dto.ExtractionResult;
 import com.recallr.events.ContentCreatedEvent;
 import com.recallr.model.Content;
 import com.recallr.model.ExtractedDocument;
@@ -28,21 +29,23 @@ public class ContentService {
     private final TextExtractor textExtractor;
     private final ContentProcessingService contentProcessingService;
     private final ApplicationEventPublisher eventPublisher;
+    private final QuotaService quotaService;
 
     public ContentService(ContentRepository contentRepository,
                           ContentTypeResolver resolver,
                           TextExtractor textExtractor,
-                          ContentProcessor contentProcessor, ContentProcessingService contentProcessingService, ApplicationEventPublisher eventPublisher) {
+                          ContentProcessor contentProcessor, ContentProcessingService contentProcessingService, ApplicationEventPublisher eventPublisher,QuotaService quotaService) {
         this.contentRepository = contentRepository;
         this.resolver = resolver;
         this.textExtractor = textExtractor;
         this.contentProcessingService = contentProcessingService;
         this.eventPublisher = eventPublisher;
+        this.quotaService = quotaService;
     }
 
     @Transactional
     public ContentResponseDTO save(ContentRequestDTO request, User user) {
-
+        quotaService.checkAndIncrementBookmarkLimit(user);
         ContentMetadata meta = resolver.resolve(request.url());
         Content content = new Content();
         content.setUrl(request.url());
@@ -54,9 +57,16 @@ public class ContentService {
 
         Content saved = contentRepository.save(content);
 
-        String rawText = textExtractor.extract(request.url(), meta.type());
+        ExtractionResult extraction = textExtractor.extract(request.url(), meta.type());
 
-        eventPublisher.publishEvent(new ContentCreatedEvent(saved.getId(),rawText, user.getId()));
+        // Pass extraction.text() and extraction.extractedVia() into the event
+        eventPublisher.publishEvent(new ContentCreatedEvent(
+                saved.getId(),
+                extraction.text(),
+                extraction.extractedVia(),
+                user.getId()
+        ));
+
         return toDTO(saved);
 
     }

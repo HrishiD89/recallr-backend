@@ -1,29 +1,38 @@
 package com.recallr.services;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+import com.recallr.dto.ExtractionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.stream.Collectors;
-
+import java.util.List;
 
 @Component
 public class ArticleExtractor {
 
     private static final Logger log = LoggerFactory.getLogger(ArticleExtractor.class);
 
-    public String extract(String url) {
-        try {
-            Document doc = Jsoup.connect(url).userAgent("Mozilla/5.0").timeout(5000).get();
+    private final List<ExtractionStrategy> strategies;
 
-            return doc.select("p").stream().map(Element::text).collect(Collectors.joining("\n\n"));
+    public ArticleExtractor(JsoupExtractionStrategy jsoup,
+                            JinaExtractionStrategy jina,
+                            TinyfishExtractionStrategy tinyfish) {
+        this.strategies = List.of(jsoup, jina, tinyfish);
+    }
 
-        } catch (Exception e) {
-            log.warn("scrapeTitle failed url={} reason={}", url, e.getMessage());
-            return "";
+    public ExtractionResult extract(String url) {
+        for(ExtractionStrategy strategy : strategies) {
+            try{
+                String text = strategy.extract(url);
+                if (text != null && text.trim().length() > 50) {
+                    log.info("Successfully extracted content using: {}", strategy.name());
+                    return new ExtractionResult(text, strategy.name());
+                }
+            }catch (Exception e){
+                // If a strategy fails, log it and let the loop proceed to the next fallback
+                log.warn("Scraper {} failed for url={}. Error: {}", strategy.name(), url, e.getMessage());
+            }
         }
+        log.error("All extraction strategies failed for url={}", url);
+        return new ExtractionResult("", "NONE");
     }
 }

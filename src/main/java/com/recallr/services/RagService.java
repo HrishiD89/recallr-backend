@@ -22,13 +22,16 @@ public class RagService {
 
     private final GeminiClient geminiClient;
     private final RagSearchService ragSearchService;
+    private final QuotaService quotaService;
 
-    public RagService(GeminiClient geminiClient, RagSearchService ragSearchService) {
+    public RagService(GeminiClient geminiClient, RagSearchService ragSearchService,QuotaService quotaService) {
         this.geminiClient = geminiClient;
         this.ragSearchService = ragSearchService;
+        this.quotaService = quotaService;
     }
 
     public RagQueryResponse query(RagQueryRequest request, User user) {
+        quotaService.checkAndIncrementRagLimit(user);
         float[] queryEmbedding = geminiClient.embedText(request.query());
         List<RagSearchResult> matches = ragSearchService.search(
                 user.getId(),

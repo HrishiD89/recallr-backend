@@ -29,6 +29,10 @@ public class ExtractedDocument {
     @Column(name = "raw_text", columnDefinition = "TEXT")
     private String rawText;
 
+    @Setter
+    @Column(name = "extracted_via", length = 32)
+    private String extractedVia;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

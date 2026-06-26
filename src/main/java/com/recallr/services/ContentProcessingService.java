@@ -35,6 +35,7 @@ public class ContentProcessingService {
         doc.setContent(content);
         doc.setSourceKind(content.getType());
         doc.setRawText(event.rawText());
+        doc.setExtractedVia(event.extractedVia());
         extractedDocumentRepository.save(doc);
 
         ProcessingStatus finalStatus = contentProcessor.process(content.getId(), event.userId());

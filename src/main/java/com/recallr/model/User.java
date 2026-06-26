@@ -17,6 +17,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private UserTier tier = UserTier.FREE;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Content> contents = new ArrayList<>();
 
@@ -80,5 +84,13 @@ public class User {
 
     public void setTags(List<Tag> tags) {
         this.tags = tags;
+    }
+
+    public UserTier getTier() {
+        return tier;
+    }
+
+    public void setTier(UserTier tier) {
+        this.tier = tier;
     }
 }
