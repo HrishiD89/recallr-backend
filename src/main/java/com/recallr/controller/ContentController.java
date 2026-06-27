@@ -1,11 +1,10 @@
 package com.recallr.controller;
 
-import com.recallr.dto.ContentRequestDTO;
-import com.recallr.dto.ContentResponseDTO;
-import com.recallr.model.Content;
+import com.recallr.dto.request.ContentRequestDTO;
+import com.recallr.dto.response.ContentResponseDTO;
 import com.recallr.model.User;
 import com.recallr.repository.UserRepository;
-import com.recallr.services.ContentService;
+import com.recallr.service.content.ContentManagementService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +25,10 @@ import java.util.List;
 @RequestMapping("/api/v1/content")
 public class ContentController {
 
-    private final ContentService contentService;
+    private final ContentManagementService contentService;
     private final UserRepository userRepository;
 
-    public ContentController(ContentService contentService, UserRepository userRepository) {
+    public ContentController(ContentManagementService contentService, UserRepository userRepository) {
         this.contentService = contentService;
         this.userRepository = userRepository;
     }
@@ -47,6 +46,12 @@ public class ContentController {
     public ResponseEntity<List<ContentResponseDTO>> getAll(Authentication auth) {
         User user = currentUser(auth);
         return ResponseEntity.ok(contentService.findAll(user));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ContentResponseDTO> getById(@PathVariable Long id, Authentication auth) {
+        User user = currentUser(auth);
+        return ResponseEntity.ok(contentService.findById(id, user));
     }
 
     @DeleteMapping("/{id}")

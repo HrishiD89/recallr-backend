@@ -1,14 +1,13 @@
 package com.recallr.controller;
 
-import com.recallr.dto.AuthRequest;
+import com.recallr.dto.request.AuthRequest;
+import com.recallr.dto.response.AuthResponse;
 import com.recallr.model.User;
 import com.recallr.repository.UserRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -42,44 +40,32 @@ public class AuthController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> signup(@Valid @RequestBody AuthRequest request) {
         if (userRepository.existsByUsername(request.username())) {
-            return ResponseEntity.status(403).body("User already exists");
+            return ResponseEntity.status(403).body(new AuthResponse(null, "User already exists"));
         }
 
-        // Create new user
-        User user = new User();
-        user.setUsername(request.username());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        userRepository.save(user);
-
+        User user = createUser(request);
         String token = generateToken(user);
 
-        return ResponseEntity.ok(
-                Map.of(
-                        "message", "Signed up",
-                        "token", token
-                )
-        );
-
+        return ResponseEntity.ok(new AuthResponse(token, "Signed up"));
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> signin(@Valid @RequestBody AuthRequest request){
-        Authentication authentication = authenticationManager.authenticate(
+    public ResponseEntity<AuthResponse> signin(@Valid @RequestBody AuthRequest request){
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.username(),
                         request.password()
                 )
         );
 
-        // Find user details
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         String token = generateToken(user);
 
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(new AuthResponse(token, null));
     }
 
     @GetMapping("/greeting")
@@ -100,5 +86,11 @@ public class AuthController {
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
+    private User createUser(AuthRequest request) {
+        User user = new User();
+        user.setUsername(request.username());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        return userRepository.save(user);
+    }
 
 }

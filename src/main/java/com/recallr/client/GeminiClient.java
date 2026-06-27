@@ -10,10 +10,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
-public class GeminiClient {
+public class GeminiClient implements GeminiApiClient {
 
     private final WebClient webClient;
     @Getter
@@ -26,6 +27,7 @@ public class GeminiClient {
         this.props = props;
     }
 
+    @Override
     public float[] embedText(String text) {
         var request = new GeminiEmbedRequest(
                 props.getEmbeddingModel(),
@@ -47,11 +49,13 @@ public class GeminiClient {
                                 .map(body -> new RuntimeException("Gemini embed error: " + body))
                 )
                 .bodyToMono(GeminiEmbedResponse.class)
+                .timeout(Duration.ofSeconds(30))
                 .block();
 
         return toFloatArray(response.embedding().values());
     }
 
+    @Override
     public String generateAnswer(String prompt) {
         var request = new GeminiGenerateRequest(
                 List.of(new GeminiGenerateRequest.GeminiContent(
@@ -72,6 +76,7 @@ public class GeminiClient {
                                 .map(body -> new RuntimeException("Gemini generate error: " + body))
                 )
                 .bodyToMono(GeminiGenerateResponse.class)
+                .timeout(Duration.ofSeconds(30))
                 .block();
 
         return response.candidates().get(0).content().parts().get(0).text();

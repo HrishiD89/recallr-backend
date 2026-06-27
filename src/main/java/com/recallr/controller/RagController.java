@@ -1,10 +1,10 @@
 package com.recallr.controller;
 
-import com.recallr.dto.RagQueryRequest;
-import com.recallr.dto.RagQueryResponse;
+import com.recallr.dto.request.RagQueryRequest;
+import com.recallr.dto.response.RagQueryResponse;
 import com.recallr.model.User;
 import com.recallr.repository.UserRepository;
-import com.recallr.services.RagService;
+import com.recallr.service.rag.RagQueryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +19,10 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/v1/rag")
 public class RagController {
 
-    private final RagService ragService;
+    private final RagQueryService ragService;
     private final UserRepository userRepository;
 
-    public RagController(RagService ragService, UserRepository userRepository) {
+    public RagController(RagQueryService ragService, UserRepository userRepository) {
         this.ragService = ragService;
         this.userRepository = userRepository;
     }

@@ -1,9 +1,9 @@
 package com.recallr.controller;
 
-import com.recallr.dto.ContentResponseDTO;
+import com.recallr.dto.response.ContentResponseDTO;
 import com.recallr.model.User;
 import com.recallr.repository.UserRepository;
-import com.recallr.services.ContentService;
+import com.recallr.service.content.ContentManagementService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +20,9 @@ import java.util.UUID;
 public class ShareController {
 
     private final UserRepository userRepository;
-    private final ContentService contentService;
+    private final ContentManagementService contentService;
 
-    public ShareController(UserRepository userRepository, ContentService contentService) {
+    public ShareController(UserRepository userRepository, ContentManagementService contentService) {
         this.userRepository = userRepository;
         this.contentService = contentService;
     }
