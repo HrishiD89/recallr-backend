@@ -16,6 +16,8 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     List<Content> findByUserOrderByCreatedAtDesc(User user);
     Optional<Content> findByIdAndUser(Long id, User user);
     List<Content> findByUserAndTagsContaining(User user, Tag tag);
+    Optional<Content> findByUrlAndUser(String url, User user);
+    long countByUser(User user);
 
     @Modifying
     @Query("UPDATE Content c SET c.processingStatus = :processingStatus WHERE c.id = :contentId")

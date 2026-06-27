@@ -2,12 +2,15 @@ package com.recallr.controller;
 
 import com.recallr.dto.request.AuthRequest;
 import com.recallr.dto.response.AuthResponse;
+import com.recallr.dto.response.UserResponseDTO;
 import com.recallr.model.User;
+import com.recallr.model.UserTier;
 import com.recallr.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -22,20 +25,28 @@ import java.time.temporal.ChronoUnit;
 @RequestMapping("/api/v1")
 public class AuthController {
 
-    // Replace with this
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
     private final AuthenticationManager authenticationManager;
+    private final com.recallr.service.quota.QuotaService quotaService;
+    private final com.recallr.repository.ContentRepository contentRepository;
+    private final com.recallr.repository.UserQuotaRepository userQuotaRepository;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           JwtEncoder jwtEncoder,
-                          AuthenticationManager authenticationManager) {
+                          AuthenticationManager authenticationManager,
+                          com.recallr.service.quota.QuotaService quotaService,
+                          com.recallr.repository.ContentRepository contentRepository,
+                          com.recallr.repository.UserQuotaRepository userQuotaRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
         this.authenticationManager = authenticationManager;
+        this.quotaService = quotaService;
+        this.contentRepository = contentRepository;
+        this.userQuotaRepository = userQuotaRepository;
     }
 
 
@@ -71,6 +82,36 @@ public class AuthController {
     @GetMapping("/greeting")
     public ResponseEntity<String> greeting(){
         return ResponseEntity.ok("Hello");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getMe(Authentication auth) {
+        if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
+            return ResponseEntity.status(401).build();
+        }
+        User user = userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+        com.recallr.model.UserQuota quota = quotaService.getOrCreateTodayQuota(user);
+        
+        int bookmarkLimit = user.getTier() == UserTier.PRO ? Integer.MAX_VALUE : 20;
+        int ragLimit = user.getTier() == UserTier.PRO ? Integer.MAX_VALUE : 10;
+
+        long totalBookmarks = contentRepository.countByUser(user);
+        long totalRagQueries = userQuotaRepository.sumRagQueriesByUser(user);
+
+        return ResponseEntity.ok(new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getTier(),
+                user.getShareToken(),
+                quota.getBookmarkSavesUsed(),
+                bookmarkLimit,
+                quota.getRagQueriesUsed(),
+                ragLimit,
+                totalBookmarks,
+                totalRagQueries
+        ));
     }
 
 

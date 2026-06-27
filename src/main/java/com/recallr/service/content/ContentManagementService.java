@@ -6,6 +6,7 @@ import com.recallr.dto.request.ContentRequestDTO;
 import com.recallr.dto.response.ContentResponseDTO;
 import com.recallr.events.ContentCreatedEvent;
 import com.recallr.model.Content;
+import com.recallr.model.ExtractedDocument;
 import com.recallr.model.ProcessingStatus;
 import com.recallr.model.User;
 import com.recallr.repository.ContentRepository;
@@ -54,6 +55,29 @@ public class ContentManagementService {
     @Transactional
     public ContentResponseDTO save(ContentRequestDTO request, User user) {
         quotaService.checkAndIncrementBookmarkLimit(user);
+
+        java.util.Optional<Content> existingOpt = contentRepository.findByUrlAndUser(request.url(), user);
+        if (existingOpt.isPresent()) {
+            Content existing = existingOpt.get();
+            if (existing.getProcessingStatus() != ProcessingStatus.READY) {
+                // Not ready -> retry embedding
+                String rawText = extractedDocumentRepository.findFirstByContentIdOrderByCreatedAtDesc(existing.getId())
+                        .map(ExtractedDocument::getRawText)
+                        .orElse("");
+                String extractedVia = extractedDocumentRepository.findFirstByContentIdOrderByCreatedAtDesc(existing.getId())
+                        .map(ExtractedDocument::getExtractedVia)
+                        .orElse("NONE");
+                
+                eventPublisher.publishEvent(new ContentCreatedEvent(
+                        existing.getId(),
+                        rawText,
+                        extractedVia,
+                        user.getId()
+                ));
+            }
+            return toDTO(existing);
+        }
+
         ContentMetadata meta = resolver.resolve(request.url());
         Content content = new Content();
         content.setUrl(request.url());
@@ -77,7 +101,6 @@ public class ContentManagementService {
         ));
 
         return toDTO(saved);
-
     }
 
 
