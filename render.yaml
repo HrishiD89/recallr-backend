@@ -1,11 +1,9 @@
 services:
   - type: web
     name: recallr-backend
-    runtime: java
+    runtime: docker
     plan: free
-    buildCommand: ./mvnw package -DskipTests -q
-    startCommand: java -jar target/RecallrBackend-0.0.1-SNAPSHOT.jar
-    healthCheckPath: /actuator/health
+    healthCheckPath: /swagger-ui/index.html
 
     envVars:
       # Spring profile — tells Spring Boot to load application-render.properties
