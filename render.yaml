@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: recallr-backend
+    runtime: java
+    plan: free
+    buildCommand: ./mvnw package -DskipTests -q
+    startCommand: java -jar target/RecallrBackend-0.0.1-SNAPSHOT.jar
+    healthCheckPath: /actuator/health
+
+    envVars:
+      # Spring profile — tells Spring Boot to load application-render.properties
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+
+      # ── Supabase Database ─────────────────────────────────────────────────
+      - key: DB_URL
+        sync: false   # Set manually in Render dashboard
+
+      - key: DB_USERNAME
+        sync: false
+
+      - key: DB_PASSWORD
+        sync: false
+
+      # Flyway uses direct port 5432 (not the pooler)
+      - key: FLYWAY_URL
+        sync: false
+
+      - key: FLYWAY_USER
+        sync: false
+
+      - key: FLYWAY_PASSWORD
+        sync: false
+
+      # ── RSA JWT Keys (paste full PEM content, keep newlines) ─────────────
+      - key: RSA_PUBLIC_KEY
+        sync: false
+
+      - key: RSA_PRIVATE_KEY
+        sync: false
+
+      # ── External APIs ─────────────────────────────────────────────────────
+      - key: GEMINI_API_KEY
+        sync: false
+
+      - key: JINA_API_KEY
+        sync: false
+
+      - key: TINYFISH_API_KEY
+        sync: false
+
+      # ── CORS ──────────────────────────────────────────────────────────────
+      # Comma-separated list of allowed origins (your Chrome extension ID)
+      - key: CORS_ALLOWED_ORIGINS
+        value: chrome-extension://jmpfdbjcnbhbkppbbichabineejfelek

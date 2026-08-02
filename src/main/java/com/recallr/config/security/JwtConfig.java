@@ -7,7 +7,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.recallr.config.RsaKeyProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,7 +18,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 @Configuration
-@EnableConfigurationProperties(RsaKeyProperties.class)
 public class JwtConfig {
 
     private final RsaKeyProperties rsaKeys;
