@@ -1,5 +1,7 @@
 package com.recallr.config;
 
+import com.recallr.infrastructure.ai.gemini.GeminiProperties;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;

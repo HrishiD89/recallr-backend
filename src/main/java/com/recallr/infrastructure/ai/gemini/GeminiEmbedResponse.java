@@ -1,0 +1,7 @@
+package com.recallr.infrastructure.ai.gemini;
+
+import java.util.List;
+
+public record GeminiEmbedResponse(GeminiEmbedding embedding) {
+    public record GeminiEmbedding(List<Double> values) {}
+}
